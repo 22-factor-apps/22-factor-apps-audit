@@ -188,11 +188,9 @@ pub fn write(path: &Path, assessment: &Assessment, force: bool) -> Result<()> {
             }
         }
     })?;
-    std::io::Write::write_all(&mut file, document.as_bytes()).map_err(|source| {
-        AuditError::Write {
-            path: path.to_path_buf(),
-            source,
-        }
+    std::io::Write::write_all(&mut file, document.as_bytes()).map_err(|source| AuditError::Write {
+        path: path.to_path_buf(),
+        source,
     })
 }
 
@@ -372,8 +370,7 @@ mod tests {
     fn assessment_output_is_fail_closed_by_default() {
         let temp = tempfile::tempdir().expect("temp directory");
         let path = temp.path().join("assessment.json");
-        let assessment =
-            initialize(&catalog(), "https://example.com/catalog.json", "app".into());
+        let assessment = initialize(&catalog(), "https://example.com/catalog.json", "app".into());
 
         write(&path, &assessment, false).expect("first write succeeds");
         assert!(matches!(
