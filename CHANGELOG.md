@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Make `flags-2-env` and `.cli-flags.toml` the typed, fail-closed CLI parsing
+  authority for commands, options, environment precedence, and generated help.
+
 This project follows Semantic Versioning for the CLI and versioned JSON
 contracts. A schema or policy version remains readable for its documented
 support window even when a newer default is introduced.

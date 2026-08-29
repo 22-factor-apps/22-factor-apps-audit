@@ -1,0 +1,94 @@
+# Canonical CLI contract for `twenty-two`.
+#
+# flags-2-env parses this file at runtime. Keep command names, option names,
+# defaults, environment keys, and help text here rather than duplicating them
+# in Rust.
+
+[help]
+url = "https://github.com/22-factor-apps/22-factor-apps-audit"
+columns = ["options", "env", "type", "default", "description"]
+
+[parse]
+stop_at_first_positional = false
+allow_unknown = false
+
+[env]
+# Authentication is deliberately environment-only. A token flag would expose
+# credentials through shell history and process listings.
+ignore = ["GITHUB_TOKEN", "TWENTY_TWO_FLAGS_CONFIG"]
+
+[flags.version]
+env = "TWENTY_TWO_VERSION"
+aliases = ["version"]
+short = "V"
+type = "bool"
+default = false
+help = "Print the CLI version and exit."
+
+[commands.audit]
+help = "Audit evidence in a local repository or a GitHub organization."
+
+[commands.audit.flags.format]
+env = "TWENTY_TWO_FORMAT"
+aliases = ["format"]
+type = "string"
+default = "text"
+help = "Output format: text or json."
+
+[commands.audit.flags.fail-on]
+env = "TWENTY_TWO_FAIL_ON"
+aliases = ["fail-on"]
+type = "string"
+default = "never"
+help = "Failure threshold: never, missing, or critical."
+
+[commands.audit.commands.repo]
+help = "Inspect a local repository. File matches are review leads, not compliance proof."
+
+[commands.audit.commands.repo.flags.policy]
+env = "TWENTY_TWO_POLICY"
+aliases = ["policy"]
+type = "string"
+help = "Path to a repository audit policy JSON file."
+
+[commands.audit.commands.org]
+help = "Inspect public or token-authorized GitHub organization metadata."
+
+[commands.assessment]
+help = "Initialize or validate a contextual, evidence-bearing assessment."
+
+[commands.assessment.commands.init]
+help = "Create an unscored 22-entry assessment."
+
+[commands.assessment.commands.init.flags.target]
+env = "TWENTY_TWO_TARGET"
+aliases = ["target"]
+type = "string"
+help = "Assessment target, for example github.com/acme/payments."
+
+[commands.assessment.commands.init.flags.catalog]
+env = "TWENTY_TWO_CATALOG"
+aliases = ["catalog"]
+type = "string"
+default = "https://22-factor-apps.github.io/catalog/v1/factors.json"
+help = "Canonical factor catalog URL or local path."
+
+[commands.assessment.commands.init.flags.output]
+env = "TWENTY_TWO_OUTPUT"
+aliases = ["output"]
+type = "string"
+default = "assessment.json"
+help = "Assessment output path."
+
+[commands.assessment.commands.init.flags.force]
+env = "TWENTY_TWO_FORCE"
+aliases = ["force"]
+type = "bool"
+default = false
+help = "Replace an existing assessment after deliberate review."
+
+[commands.assessment.commands.validate]
+help = "Validate assessment shape, provenance, coverage, and evidence semantics."
+
+[commands.schema]
+help = "Print a bundled JSON Schema: assessment or audit-report."
