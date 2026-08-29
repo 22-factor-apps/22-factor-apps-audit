@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://22-factor-apps.github.io/schemas/assessment-v1.schema.json",
+  "title": "Twenty-Two-Factor contextual assessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "edition",
+    "target",
+    "source",
+    "factors",
+    "overlays",
+    "interpretation"
+  ],
+  "properties": {
+    "schema_version": { "const": "22-factor.assessment/v1" },
+    "edition": { "type": "string", "minLength": 1 },
+    "target": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog_url", "repository", "release"],
+      "properties": {
+        "catalog_url": { "type": "string", "format": "uri", "pattern": "^https?://" },
+        "repository": { "type": "string", "format": "uri", "pattern": "^https?://" },
+        "release": { "type": "string", "minLength": 1 }
+      }
+    },
+    "factors": {
+      "type": "array",
+      "minItems": 22,
+      "maxItems": 22,
+      "items": { "$ref": "#/$defs/factor" }
+    },
+    "overlays": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "interpretation": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "factor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "number",
+        "slug",
+        "title",
+        "commandment",
+        "boundary",
+        "litmus_test",
+        "status",
+        "rationale",
+        "evidence",
+        "owner",
+        "review_date",
+        "follow_up"
+      ],
+      "properties": {
+        "number": { "type": "integer", "minimum": 1, "maximum": 22 },
+        "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "title": { "type": "string", "minLength": 1 },
+        "commandment": { "type": "string", "minLength": 1 },
+        "boundary": { "type": "string", "minLength": 1 },
+        "litmus_test": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": [
+            "not-assessed",
+            "satisfied",
+            "partial",
+            "not-satisfied",
+            "not-applicable"
+          ]
+        },
+        "rationale": { "type": "string" },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "url"],
+            "properties": {
+              "label": { "type": "string", "minLength": 1 },
+              "url": { "type": "string", "format": "uri", "pattern": "^https?://" }
+            }
+          }
+        },
+        "owner": { "type": ["string", "null"], "minLength": 1 },
+        "review_date": { "type": ["string", "null"], "format": "date" },
+        "follow_up": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "not-applicable" } } },
+          "then": { "properties": { "rationale": { "minLength": 1 } } }
+        },
+        {
+          "if": { "properties": { "status": { "const": "satisfied" } } },
+          "then": { "properties": { "evidence": { "minItems": 1 } } }
+        }
+      ]
+    }
+  }
+}
