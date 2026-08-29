@@ -1,0 +1,223 @@
+{
+  "schema_version": "22-factor.policy/v1",
+  "edition": "2026.2",
+  "catalog_url": "https://22-factor-apps.github.io/catalog/v1/factors.json",
+  "repo_rules": [
+    {
+      "id": "locked-dependency-graph",
+      "factor_number": 2,
+      "factor_slug": "dependencies",
+      "title": "Locked dependency graph",
+      "rationale": "A declared manifest without a lock, digest, or equivalent resolution record leaves the build dependent on future registry state.",
+      "next_step": "Commit the ecosystem's resolution record and verify it in CI; review generated or vendored dependencies separately.",
+      "severity": "important",
+      "any_path_suffixes": ["cargo.lock", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "poetry.lock", "uv.lock", "go.sum", "gemfile.lock", "composer.lock", "pubspec.lock", "flake.lock"]
+    },
+    {
+      "id": "validated-configuration-contract",
+      "factor_number": 3,
+      "factor_slug": "config",
+      "title": "Configuration contract",
+      "rationale": "Templates and schemas make deploy-time inputs discoverable without committing deploy-specific values or secrets.",
+      "next_step": "Publish a secret-free configuration example or schema and document startup validation and failure behavior.",
+      "severity": "important",
+      "any_path_suffixes": [".env.example", ".env.sample", "config.schema.json", "configuration.schema.json"],
+      "any_path_fragments": ["/config/schema", "/schemas/config"]
+    },
+    {
+      "id": "immutable-release-path",
+      "factor_number": 5,
+      "factor_slug": "build-release-run",
+      "title": "Immutable build and release path",
+      "rationale": "A repeatable build or release definition is the starting evidence for separating build, release, and run.",
+      "next_step": "Build once in CI, identify the artifact immutably, attach configuration later, and promote the same bytes between environments.",
+      "severity": "critical",
+      "any_path_suffixes": ["dockerfile", "justfile", "makefile", "release.yml", "release.yaml"],
+      "any_path_fragments": ["/.github/workflows/", "/.gitlab-ci", "/buildkite/", "/nix/"]
+    },
+    {
+      "id": "production-significant-tests",
+      "factor_number": 9,
+      "factor_slug": "environment-parity",
+      "title": "Production-significant test path",
+      "rationale": "Tests and CI provide review leads for production-significant differences, but only a human can confirm that the important differences are actually exercised.",
+      "next_step": "Name production-only differences explicitly and exercise them in representative integration, system, or end-to-end tests.",
+      "severity": "important",
+      "any_path_fragments": ["/tests/", "/test/", "/e2e/", "/integration/", "/.github/workflows/"]
+    },
+    {
+      "id": "auditable-admin-procedures",
+      "factor_number": 10,
+      "factor_slug": "admin-processes",
+      "title": "Auditable administrative procedures",
+      "rationale": "Administrative work should be versioned, repeatable, bounded, and run from the same release context as the application.",
+      "next_step": "Put migrations, repair commands, and runbooks under review with dry-run, authorization, and audit behavior.",
+      "severity": "important",
+      "any_path_fragments": ["/migrations/", "/runbooks/", "/scripts/admin", "/docs/operations", "/docs/runbook"]
+    },
+    {
+      "id": "machine-readable-contracts",
+      "factor_number": 11,
+      "factor_slug": "contract-first-interfaces",
+      "title": "Machine-readable interface contracts",
+      "rationale": "Schemas and interface descriptions make consumer-visible behavior reviewable before and alongside implementation.",
+      "next_step": "Publish the relevant OpenAPI, AsyncAPI, Protocol Buffer, JSON Schema, GraphQL, or typed interface contract and test semantic compatibility.",
+      "severity": "critical",
+      "any_path_suffixes": ["openapi.json", "openapi.yaml", "openapi.yml", "asyncapi.json", "asyncapi.yaml", "asyncapi.yml", ".proto", ".schema.json", "schema.graphql"],
+      "any_path_fragments": ["/schemas/", "/interfaces/", "/contracts/"]
+    },
+    {
+      "id": "security-policy",
+      "factor_number": 12,
+      "factor_slug": "secure-by-design",
+      "title": "Security policy and safe reporting path",
+      "rationale": "A security policy is not proof of secure design, but it exposes ownership, reporting, and response expectations.",
+      "next_step": "Add SECURITY.md, threat-model the public boundaries, and test authentication, authorization, abuse, and fail-closed behavior.",
+      "severity": "critical",
+      "any_path_suffixes": ["security.md", "threat-model.md", "threat_model.md"],
+      "any_path_fragments": ["/threat-models/", "/security/"]
+    },
+    {
+      "id": "service-level-evidence",
+      "factor_number": 13,
+      "factor_slug": "observability-slos",
+      "title": "Service-level and observability evidence",
+      "rationale": "Instrumentation and objectives should connect telemetry to user-visible risk rather than merely collecting logs.",
+      "next_step": "Define user-visible SLIs/SLOs, instrument causal context, and document which alerts require action.",
+      "severity": "critical",
+      "any_path_fragments": ["/observability/", "/telemetry/", "/slo", "/otel", "/metrics/", "/tracing/"]
+    },
+    {
+      "id": "supply-chain-evidence",
+      "factor_number": 14,
+      "factor_slug": "supply-chain-integrity",
+      "title": "Supply-chain verification evidence",
+      "rationale": "Dependency automation, SBOMs, attestations, and provenance workflows are evidence that artifact admission is deliberate.",
+      "next_step": "Pin third-party automation, generate an SBOM, sign or attest releases, and verify provenance before deployment.",
+      "severity": "critical",
+      "any_path_suffixes": ["dependabot.yml", "renovate.json", "sbom.spdx.json", "sbom.cdx.json"],
+      "any_path_fragments": ["/provenance/", "/attestations/", "/.github/dependabot"]
+    },
+    {
+      "id": "bounded-failure-design",
+      "factor_number": 15,
+      "factor_slug": "resilience-fault-containment",
+      "title": "Fault-containment evidence",
+      "rationale": "Resilience requires explicit bounds and recovery tests, not an untested claim that the platform is highly available.",
+      "next_step": "Document timeout, retry, queue, load, and blast-radius bounds; add a tested recovery or fault-injection path.",
+      "severity": "critical",
+      "any_path_fragments": ["/chaos/", "/resilience/", "/recovery/", "/fault-injection", "/disaster-recovery"]
+    },
+    {
+      "id": "data-lifecycle-policy",
+      "factor_number": 16,
+      "factor_slug": "data-lifecycle-privacy",
+      "title": "Data lifecycle and privacy policy",
+      "rationale": "Retention, deletion, export, and privacy documents expose whether every copy has an owner and an end-of-life path.",
+      "next_step": "Map collection through deletion, including backups, analytics, logs, exports, replicas, and derived data.",
+      "severity": "critical",
+      "any_path_fragments": ["/privacy", "/retention", "/data-lifecycle", "/deletion", "/data-governance"]
+    },
+    {
+      "id": "reviewed-desired-state",
+      "factor_number": 17,
+      "factor_slug": "infrastructure-policy-code",
+      "title": "Reviewed infrastructure or policy as code",
+      "rationale": "Declarative infrastructure and policy files create a reviewable desired state and a place to define safe reconciliation.",
+      "next_step": "Version desired state, validate policy before apply, detect drift, and require explicit approval for destructive reconciliation.",
+      "severity": "important",
+      "any_path_suffixes": [".tf", "flake.nix", "dockerfile", "compose.yaml", "compose.yml", "chart.yaml", "kustomization.yaml"],
+      "any_path_fragments": ["/infra/", "/infrastructure/", "/terraform/", "/k8s/", "/policies/"]
+    },
+    {
+      "id": "progressive-exposure-controls",
+      "factor_number": 18,
+      "factor_slug": "progressive-delivery",
+      "title": "Progressive exposure controls",
+      "rationale": "Feature flags, canary policy, or staged deployment definitions are review leads for separating deployment from exposure.",
+      "next_step": "Define cohorts, health gates, automatic stop conditions, rollback behavior, and cleanup ownership for exposure controls.",
+      "severity": "important",
+      "any_path_fragments": ["/feature-flags", "/flags/", "/canary", "/progressive-delivery", "/rollout"]
+    },
+    {
+      "id": "compatibility-and-migration",
+      "factor_number": 19,
+      "factor_slug": "evolutionary-compatibility",
+      "title": "Compatibility and migration evidence",
+      "rationale": "Changelogs, migrations, compatibility tests, and deprecation records make coexistence and rollback reviewable.",
+      "next_step": "Specify support windows, additive change rules, migration checkpoints, rollback, and the evidence required before removal.",
+      "severity": "critical",
+      "any_path_suffixes": ["changelog.md", "changes.md", "deprecations.md"],
+      "any_path_fragments": ["/migrations/", "/compatibility/", "/contract-tests/"]
+    },
+    {
+      "id": "outcome-ownership",
+      "factor_number": 20,
+      "factor_slug": "outcome-ownership",
+      "title": "Outcome ownership evidence",
+      "rationale": "CODEOWNERS and contribution guidance identify review responsibility, but a human must still verify end-to-end outcome authority.",
+      "next_step": "Name an empowered team that owns the user outcome, operations, safety, cost, change, and retirement—not only a component.",
+      "severity": "critical",
+      "any_path_suffixes": ["codeowners", "contributing.md", "ownership.md"],
+      "any_path_fragments": ["/owners/"]
+    },
+    {
+      "id": "cost-boundary",
+      "factor_number": 21,
+      "factor_slug": "cost-architecture",
+      "title": "Cost attribution and budget evidence",
+      "rationale": "Budgets, unit economics, and cost runbooks provide evidence that resource use is treated as an architectural boundary.",
+      "next_step": "Attribute spend to user-visible units, set budget and anomaly boundaries, and include cost in design and incident review.",
+      "severity": "important",
+      "any_path_fragments": ["/cost", "/finops", "/budgets/", "/unit-economics"]
+    },
+    {
+      "id": "sustainable-operation",
+      "factor_number": 22,
+      "factor_slug": "sustainable-operation",
+      "title": "Sustainable operation evidence",
+      "rationale": "Sustainability records provide a place to connect useful work to energy, hardware, data movement, and lifecycle decisions.",
+      "next_step": "Measure material impact, reduce waste without exporting harm, and record the trade-offs alongside performance and cost.",
+      "severity": "advisory",
+      "any_path_fragments": ["/sustainability", "/carbon", "/energy", "/green-software"]
+    }
+  ],
+  "manual_rules": [
+    {
+      "id": "backing-service-contracts",
+      "factor_number": 4,
+      "factor_slug": "backing-services",
+      "title": "Replaceable backing-service contracts",
+      "rationale": "Static files cannot establish that backing services are attached through explicit, replaceable contracts.",
+      "next_step": "Review binding, identity, timeout, migration, failure, and replacement behavior for every backing service.",
+      "severity": "critical"
+    },
+    {
+      "id": "stateless-execution",
+      "factor_number": 6,
+      "factor_slug": "processes",
+      "title": "Stateless execution boundary",
+      "rationale": "Repository evidence alone cannot prove that durable state is kept behind explicit contracts at runtime.",
+      "next_step": "Terminate or relocate instances and verify correctness, session continuity, and durable state ownership.",
+      "severity": "critical"
+    },
+    {
+      "id": "bounded-concurrency",
+      "factor_number": 7,
+      "factor_slug": "concurrency",
+      "title": "Bounded concurrency model",
+      "rationale": "A code scan cannot reliably infer queue, worker, thread, connection, and downstream saturation bounds.",
+      "next_step": "Document each concurrency layer, its admission and backpressure rules, and the test that proves overload remains bounded.",
+      "severity": "critical"
+    },
+    {
+      "id": "startup-shutdown-correctness",
+      "factor_number": 8,
+      "factor_slug": "disposability",
+      "title": "Startup and shutdown correctness",
+      "rationale": "Disposability is a runtime property that requires termination and recovery evidence.",
+      "next_step": "Measure readiness, drain in-flight work, test abrupt termination, and prove retry or replay does not corrupt outcomes.",
+      "severity": "critical"
+    }
+  ]
+}

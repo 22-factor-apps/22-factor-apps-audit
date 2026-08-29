@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://22-factor-apps.github.io/schemas/audit-report-v1.schema.json",
+  "title": "Twenty-Two-Factor evidence audit report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "edition",
+    "catalog_url",
+    "generated_at_unix_seconds",
+    "target",
+    "findings",
+    "interpretation"
+  ],
+  "properties": {
+    "schema_version": { "const": "22-factor.audit-report/v1" },
+    "edition": { "type": "string", "minLength": 1 },
+    "catalog_url": { "type": "string", "format": "uri", "pattern": "^https?://" },
+    "generated_at_unix_seconds": { "type": "integer", "minimum": 0 },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "locator", "source_revision", "dirty"],
+      "properties": {
+        "kind": { "enum": ["repository", "github-organization"] },
+        "locator": { "type": "string", "minLength": 1 },
+        "source_revision": { "type": ["string", "null"] },
+        "dirty": { "type": ["boolean", "null"] }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "factor",
+          "state",
+          "severity",
+          "title",
+          "rationale",
+          "evidence",
+          "next_step"
+        ],
+        "properties": {
+          "rule_id": { "type": "string", "minLength": 1 },
+          "factor": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["number", "slug"],
+            "properties": {
+              "number": { "type": "integer", "minimum": 1, "maximum": 22 },
+              "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+            }
+          },
+          "state": { "enum": ["observed", "missing", "manual-review"] },
+          "severity": { "enum": ["advisory", "important", "critical"] },
+          "title": { "type": "string", "minLength": 1 },
+          "rationale": { "type": "string", "minLength": 1 },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "location", "detail"],
+              "properties": {
+                "kind": { "type": "string", "minLength": 1 },
+                "location": { "type": "string", "minLength": 1 },
+                "detail": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "next_step": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "interpretation": { "type": "string", "minLength": 1 }
+  }
+}
