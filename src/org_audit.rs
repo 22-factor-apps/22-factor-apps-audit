@@ -32,28 +32,50 @@ pub fn audit(owner: &str, client: &GithubClient) -> Result<AuditReport> {
         .filter(|repo| !repo.archived && !repo.disabled && !repo.fork)
         .collect::<Vec<_>>();
 
-    let profile_exists =
-        client.path_exists(&format!("repos/{owner}/.github/contents/profile/README.md"))?;
     let common_security = any_path_exists(
         client,
         owner,
         ".github",
         &["SECURITY.md", ".github/SECURITY.md"],
     )?;
-    let common_owners = any_path_exists(
-        client,
-        owner,
-        ".github",
-        &["CODEOWNERS", ".github/CODEOWNERS", "docs/CODEOWNERS"],
-    )?;
-
     let mut workflows = Vec::new();
+    let mut formal_methods = Vec::new();
+    let mut safe_languages = Vec::new();
     for repository in &active {
         if client.path_exists(&format!(
             "repos/{owner}/{}/contents/.github/workflows",
             repository.name
         ))? {
             workflows.push(repository.html_url.clone());
+        }
+        if any_path_exists(
+            client,
+            owner,
+            &repository.name,
+            &[
+                "docs/formal-methods",
+                "formal",
+                "specs",
+                "models",
+                "model.tla",
+                "spec.tla",
+            ],
+        )? {
+            formal_methods.push(repository.html_url.clone());
+        }
+        if any_path_exists(
+            client,
+            owner,
+            &repository.name,
+            &[
+                "Cargo.toml",
+                "rust-toolchain.toml",
+                "analysis_options.yaml",
+                "tsconfig.json",
+                "docs/language-safety.md",
+            ],
+        )? {
+            safe_languages.push(repository.html_url.clone());
         }
     }
 
@@ -62,7 +84,8 @@ pub fn audit(owner: &str, client: &GithubClient) -> Result<AuditReport> {
         repository_context_finding(&active),
         security_baseline_finding(common_security, owner),
         release_automation_finding(&active, &workflows),
-        ownership_finding(profile_exists, common_owners, owner),
+        formal_methods_finding(&formal_methods),
+        safe_languages_finding(&safe_languages),
     ];
 
     Ok(AuditReport::new(
@@ -228,38 +251,74 @@ fn release_automation_finding(repositories: &[&Repository], workflows: &[String]
     }
 }
 
-fn ownership_finding(profile_exists: bool, codeowners_exists: bool, owner: &str) -> Finding {
-    let observed = profile_exists && codeowners_exists;
-    let mut evidence = Vec::new();
-    if profile_exists {
-        evidence.push(Evidence {
-            kind: "github-organization-profile".into(),
-            location: format!("https://github.com/{owner}"),
-            detail: "Public organization profile README".into(),
-        });
-    }
-    if codeowners_exists {
-        evidence.push(Evidence {
-            kind: "github-codeowners".into(),
-            location: format!("https://github.com/{owner}/.github"),
-            detail: "Organization-wide ownership default".into(),
-        });
-    }
+fn formal_methods_finding(repositories: &[String]) -> Finding {
     Finding {
-        rule_id: "org-outcome-ownership".into(),
+        rule_id: "org-formal-methods".into(),
         factor: FactorRef {
             number: 20,
-            slug: "outcome-ownership".into(),
+            slug: "formal-methods-functional-core".into(),
         },
-        state: if observed {
-            EvidenceState::Observed
-        } else {
+        state: if repositories.is_empty() {
             EvidenceState::Missing
+        } else {
+            EvidenceState::Observed
         },
         severity: Severity::Critical,
-        title: "Organization purpose and review ownership".into(),
-        rationale: "A profile plus default ownership makes purpose and review responsibility discoverable, while outcome authority still requires human verification.".into(),
-        evidence,
-        next_step: "Publish an organization profile and CODEOWNERS default, then verify that one empowered team owns each user outcome through retirement.".into(),
+        title: "Formal-methods evidence is discoverable".into(),
+        rationale: "A checked-in model or formal-methods directory makes critical state and invariants reviewable; its existence does not prove correspondence with implementation.".into(),
+        evidence: repositories
+            .iter()
+            .map(|location| Evidence {
+                kind: "github-formal-methods".into(),
+                location: location.clone(),
+                detail: "Repository contains a formal model or formal-methods path".into(),
+            })
+            .collect(),
+        next_step: "Model the highest-risk lifecycle, check safety and progress properties, and record how the model refines into exhaustive production transitions.".into(),
+    }
+}
+
+fn safe_languages_finding(repositories: &[String]) -> Finding {
+    Finding {
+        rule_id: "org-safe-languages".into(),
+        factor: FactorRef {
+            number: 21,
+            slug: "safe-languages-total-types".into(),
+        },
+        state: if repositories.is_empty() {
+            EvidenceState::Missing
+        } else {
+            EvidenceState::Observed
+        },
+        severity: Severity::Critical,
+        title: "Memory-safe language evidence is discoverable".into(),
+        rationale: "A memory-safe toolchain or language-safety record is a review lead; it does not establish strict nullability, safe transitive dependencies, or correct unsafe boundaries.".into(),
+        evidence: repositories
+            .iter()
+            .map(|location| Evidence {
+                kind: "github-language-safety".into(),
+                location: location.clone(),
+                detail: "Repository contains a memory-safe toolchain or language-safety path".into(),
+            })
+            .collect(),
+        next_step: "Prefer memory-safe languages, enable strict type and null checks, isolate unsafe or foreign code, and publish a risk-ranked migration path for legacy components.".into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn revised_organization_signals_use_the_2026_3_factors() {
+        let formal = formal_methods_finding(&["https://github.com/example/spec".into()]);
+        let safe = safe_languages_finding(&["https://github.com/example/rust".into()]);
+
+        assert_eq!(formal.factor.number, 20);
+        assert_eq!(formal.factor.slug, "formal-methods-functional-core");
+        assert_eq!(formal.state, EvidenceState::Observed);
+        assert_eq!(safe.factor.number, 21);
+        assert_eq!(safe.factor.slug, "safe-languages-total-types");
+        assert_eq!(safe.state, EvidenceState::Observed);
     }
 }
