@@ -1,46 +1,66 @@
 ---------------------------- MODULE AuditLifecycle ----------------------------
-EXTENDS Naturals, FiniteSets, TLC
+EXTENDS Naturals
 
-Factors == 1..22
-EvidenceStates == {"Observed", "Missing", "ManualReview"}
-FactorSymmetry == Permutations(Factors)
+TotalFactors == 22
 
-VARIABLES status, published
+VARIABLES pending, observed, missing, manualReview, published
 
-vars == <<status, published>>
+vars == <<pending, observed, missing, manualReview, published>>
 
 Init ==
-  /\ status = [factor \in Factors |-> "Pending"]
+  /\ pending = TotalFactors
+  /\ observed = 0
+  /\ missing = 0
+  /\ manualReview = 0
   /\ published = FALSE
 
-Classify(factor, evidenceState) ==
+ClassifyObserved ==
   /\ published = FALSE
-  /\ factor \in Factors
-  /\ status[factor] = "Pending"
-  /\ evidenceState \in EvidenceStates
-  /\ status' = [status EXCEPT ![factor] = evidenceState]
-  /\ UNCHANGED published
+  /\ pending > 0
+  /\ pending' = pending - 1
+  /\ observed' = observed + 1
+  /\ UNCHANGED <<missing, manualReview, published>>
+
+ClassifyMissing ==
+  /\ published = FALSE
+  /\ pending > 0
+  /\ pending' = pending - 1
+  /\ missing' = missing + 1
+  /\ UNCHANGED <<observed, manualReview, published>>
+
+ClassifyManualReview ==
+  /\ published = FALSE
+  /\ pending > 0
+  /\ pending' = pending - 1
+  /\ manualReview' = manualReview + 1
+  /\ UNCHANGED <<observed, missing, published>>
 
 Publish ==
   /\ published = FALSE
-  /\ \A factor \in Factors : status[factor] \in EvidenceStates
+  /\ pending = 0
   /\ published' = TRUE
-  /\ UNCHANGED status
+  /\ UNCHANGED <<pending, observed, missing, manualReview>>
 
 Next ==
-  \/ \E factor \in Factors, evidenceState \in EvidenceStates :
-       Classify(factor, evidenceState)
+  \/ ClassifyObserved
+  \/ ClassifyMissing
+  \/ ClassifyManualReview
   \/ Publish
 
-Spec == Init /\ [][Next]_vars
+Spec == Init /\ [][Next]_vars /\ WF_vars(Next)
 
 TypeOK ==
-  /\ status \in [Factors -> (EvidenceStates \union {"Pending"})]
+  /\ pending \in 0..TotalFactors
+  /\ observed \in 0..TotalFactors
+  /\ missing \in 0..TotalFactors
+  /\ manualReview \in 0..TotalFactors
   /\ published \in BOOLEAN
 
-PublishedCoverage ==
-  published => \A factor \in Factors : status[factor] \in EvidenceStates
+ConservesCoverage ==
+  pending + observed + missing + manualReview = TotalFactors
 
-THEOREM Spec => []TypeOK
-THEOREM Spec => []PublishedCoverage
+PublishedCoverage ==
+  published => pending = 0
+
+EventuallyPublished == <>published
 ===============================================================================
