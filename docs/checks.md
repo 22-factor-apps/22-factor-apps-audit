@@ -15,7 +15,7 @@ system compliant?”
 | VII | Manual review | Admission, backpressure, and saturation bounds at every layer |
 | VIII | Manual review | Readiness, drain, abrupt termination, replay, and recovery |
 | IX | Tests and CI | Whether production-significant differences are represented |
-| X | Migrations, admin scripts, or runbooks | Shipped-release context, authorization, audit, and dry-run behavior |
+| X | Migrations, admin scripts, admin-infra, or runbooks | Shipped-release context, separate admin network and identity planes, authorization, audit, and dry-run behavior |
 | XI | Schema, IDL, or contract directory | Semantics, compatibility, failures, limits, and consumer tests |
 | XII | Security policy or threat model | Identity, authorization, input, abuse, and fail-closed tests |
 | XIII | SLO or observability material | User-visible objectives, causality, and actionable alerts |
@@ -25,8 +25,8 @@ system compliant?”
 | XVII | Declarative infrastructure or policy | Validation, drift reconciliation, safety bounds, and approvals |
 | XVIII | Flags, canary, rollout, or progressive-delivery material | Cohorts, health gates, stop conditions, rollback, and cleanup |
 | XIX | Changelog, migrations, compatibility, or contract tests | Coexistence, support windows, migration, and rollback proof |
-| XX | CODEOWNERS, contribution, or ownership material | One empowered team owns the user outcome through retirement |
-| XXI | Cost, FinOps, budget, or unit-economics material | Resource attribution and design/incident decision boundaries |
+| XX | Formal specifications, state-machine models, or property/state-machine tests | Model-to-code connection, invariants, exhaustive transitions, pure decision logic, and stale-result suppression |
+| XXI | Memory-safe toolchain or language/memory-safety policy | Strict nullability, typed absence and failure, transitive native code, unsafe-boundary contracts, and migration evidence |
 | XXII | Sustainability, carbon, energy, or green-software material | Material impact, avoided harm, and documented trade-offs |
 
 ## Exit behavior
@@ -39,7 +39,9 @@ failing status by the CLI.
 
 ## Custom policy
 
-Pass `--policy path/to/policy.json` to change repository path cues. A policy is
+The embedded default is `policies/default-v2.json`; `default-v1.json` remains available
+for reproducible edition 2026.2 audits. Pass `--policy path/to/policy.json` to change
+repository path cues. A policy is
 valid only when rule identifiers are unique, factors are within 1–22, and each
 factor has no more than one primary rule. Keep policy changes in review and pair
 them with examples; a broad filename match can create false confidence.

@@ -23,7 +23,7 @@ GitHub organization metadata ───┘          │
   finding for every factor. Runtime properties that static files cannot prove
   are marked `manual-review`, never guessed.
 - `audit org` inspects source-portfolio, public contract, security, automation,
-  and ownership signals through the GitHub API.
+  formal-methods, and safe-language signals through the GitHub API.
 - `assessment init` downloads the catalog generated from the canonical 22
   Markdown documents and creates an unscored, 22-entry JSON assessment.
 - `assessment validate` enforces provenance, factor coverage, evidence URLs,
@@ -35,7 +35,7 @@ The project currently publishes source releases rather than a crates.io binary:
 
 ```sh
 cargo install --git https://github.com/22-factor-apps/22-factor-apps-audit \
-  --locked --bin twenty-two
+  --tag v0.2.0 --locked --bin twenty-two
 ```
 
 To work from a clone:
@@ -113,8 +113,9 @@ design. A missing repository file can also be legitimate when the evidence is
 held in an approved external system. The CLI records both cases as review
 inputs; the assessment carries the contextual decision.
 
-The default repository policy is versioned at
-[`policies/default-v1.json`](policies/default-v1.json). The assessment and audit
+The current repository policy is versioned at
+[`policies/default-v2.json`](policies/default-v2.json); the earlier v1 policy remains
+available for edition 2026.2 assessments. The assessment and audit
 report contracts are under [`schemas/`](schemas/). See
 [`docs/checks.md`](docs/checks.md) for the factor-by-factor automation boundary
 and [`docs/overlays.md`](docs/overlays.md) for AI, local-first, mobile, and
@@ -127,6 +128,9 @@ regulated-safety overlays.
 - Repository scans skip dependency, build, VCS, and vendor directories.
 - HTTPS credentials in Git remote URLs are redacted before output.
 - The GitHub token is only read from `GITHUB_TOKEN`; there is no token flag.
+- The bundled `flags-2-env` FFI is isolated and documented in
+  [`docs/language-safety.md`](docs/language-safety.md); ordinary audit logic remains
+  safe Rust.
 
 ## License
 

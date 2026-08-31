@@ -15,6 +15,19 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Check repository audit lifecycle model
+        run: |
+          tla_jar="$RUNNER_TEMP/tla2tools-1.7.4.jar"
+          curl --fail --location --silent --show-error --retry 3 \
+            https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar \
+            --output "$tla_jar"
+          printf '%s  %s\n' \
+            '936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88' \
+            "$tla_jar" | sha256sum --check --strict
+          java -cp "$tla_jar" tlc2.TLC -workers auto \
+            -config docs/formal-methods/AuditLifecycle.cfg \
+            docs/formal-methods/AuditLifecycle.tla
+
       - name: Install pinned Rust toolchain
         run: rustup toolchain install 1.96.0 --profile minimal --component clippy,rustfmt
 

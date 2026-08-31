@@ -1,6 +1,6 @@
 [package]
 name = "twenty-two-factor-audit"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.96"
 description = "Evidence-first audits for repositories and GitHub organizations against the Twenty-Two-Factor App"
