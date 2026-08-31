@@ -1,6 +1,8 @@
-use std::path::PathBuf;
+mod cli_contract;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use cli_contract::{
+    AssessmentAction, AuditTarget, Cli, Command, FailOn, OutputFormat, ParseOutcome, SchemaKind,
+};
 use twenty_two_factor_audit::{
     DEFAULT_CATALOG_URL, assessment,
     error::{AuditError, Result},
@@ -11,100 +13,20 @@ use twenty_two_factor_audit::{
     render, repo_audit,
 };
 
-#[derive(Debug, Parser)]
-#[command(
-    name = "twenty-two",
-    version,
-    about = "Discover evidence for the Twenty-Two-Factor App without manufacturing a maturity score"
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
-
-#[derive(Debug, Subcommand)]
-enum Command {
-    /// Audit evidence in a local repository or a GitHub organization.
-    Audit {
-        #[command(subcommand)]
-        target: AuditTarget,
-    },
-    /// Initialize or validate a contextual, evidence-bearing assessment.
-    Assessment {
-        #[command(subcommand)]
-        action: AssessmentAction,
-    },
-    /// Print a bundled JSON Schema.
-    Schema {
-        #[arg(value_enum)]
-        kind: SchemaKind,
-    },
-}
-
-#[derive(Debug, Subcommand)]
-enum AuditTarget {
-    /// Inspect a local repository. File matches are review leads, not compliance proof.
-    Repo {
-        #[arg(default_value = ".")]
-        path: PathBuf,
-        #[arg(long)]
-        policy: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "text")]
-        format: OutputFormat,
-        #[arg(long, value_enum, default_value = "never")]
-        fail_on: FailOn,
-    },
-    /// Inspect public GitHub organization metadata and common policy evidence.
-    Org {
-        owner: String,
-        #[arg(long, value_enum, default_value = "text")]
-        format: OutputFormat,
-        #[arg(long, value_enum, default_value = "never")]
-        fail_on: FailOn,
-    },
-}
-
-#[derive(Debug, Subcommand)]
-enum AssessmentAction {
-    /// Create a 22-entry assessment from the canonical generated catalog.
-    Init {
-        #[arg(long)]
-        target: String,
-        #[arg(long, default_value = DEFAULT_CATALOG_URL)]
-        catalog: String,
-        #[arg(long, default_value = "assessment.json")]
-        output: PathBuf,
-        /// Replace an existing output file. Omitted by default to prevent evidence loss.
-        #[arg(long)]
-        force: bool,
-    },
-    /// Validate assessment semantics in addition to its JSON shape.
-    Validate { path: PathBuf },
-}
-
-#[derive(Clone, Copy, Debug, ValueEnum)]
-enum OutputFormat {
-    Text,
-    Json,
-}
-
-#[derive(Clone, Copy, Debug, ValueEnum)]
-enum FailOn {
-    Never,
-    Missing,
-    Critical,
-}
-
-#[derive(Clone, Copy, Debug, ValueEnum)]
-enum SchemaKind {
-    Assessment,
-    AuditReport,
-}
-
 fn main() {
-    if let Err(error) = run(Cli::parse()) {
-        eprintln!("error: {error}");
-        std::process::exit(2);
+    let argv = std::env::args().collect::<Vec<_>>();
+    match cli_contract::parse(&argv) {
+        Ok(ParseOutcome::Print(output)) => print!("{output}"),
+        Ok(ParseOutcome::Run(cli)) => {
+            if let Err(error) = run(cli) {
+                eprintln!("error: {error}");
+                std::process::exit(2);
+            }
+        }
+        Err(error) => {
+            eprintln!("error: {error}");
+            std::process::exit(2);
+        }
     }
 }
 

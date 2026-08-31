@@ -45,6 +45,21 @@ cargo build --locked
 cargo test --locked
 ```
 
+## CLI contract
+
+[`flags-2-env`](https://github.com/flags-2-env/flags-2-env) is the CLI parsing
+authority. [`.cli-flags.toml`](.cli-flags.toml) declares the command tree,
+options, types, defaults, environment keys, and help text. The Rust binary
+audits that contract, rejects unknown options, applies
+`dotenv < environment < dotenv_override < argv` precedence without mutating
+the process environment, and uses the bundled parser so no shared native
+library is required at runtime.
+
+Installed binaries carry an embedded copy of the contract. Set
+`TWENTY_TWO_FLAGS_CONFIG` only to test or deliberately supply an external
+contract; the path must identify a readable file and is validated before any
+command runs.
+
 ## Use
 
 Audit the current checkout in readable text:
