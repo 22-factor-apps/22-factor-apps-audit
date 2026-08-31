@@ -41,11 +41,16 @@ Publish ==
   /\ published' = TRUE
   /\ UNCHANGED <<pending, observed, missing, manualReview>>
 
+PublishedTerminal ==
+  /\ published = TRUE
+  /\ UNCHANGED vars
+
 Next ==
   \/ ClassifyObserved
   \/ ClassifyMissing
   \/ ClassifyManualReview
   \/ Publish
+  \/ PublishedTerminal
 
 Spec == Init /\ [][Next]_vars /\ WF_vars(Next)
 

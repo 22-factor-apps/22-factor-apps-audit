@@ -8,7 +8,8 @@ finite count abstraction:
   `missing`, or `manualReview` bucket;
 - the four bucket counts always sum to 22;
 - a report cannot be published until every factor is classified; and
-- a published report cannot be reclassified.
+- a published report enters an explicit terminal self-loop and cannot be
+  reclassified.
 
 Weak fairness excludes an execution that stutters forever while classification or
 publication is enabled, so TLC also checks eventual publication. CI downloads the
