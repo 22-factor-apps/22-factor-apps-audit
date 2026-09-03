@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://22-factor-apps.github.io/schemas/app-surface-parity-receipt-v1.json",
+  "title": "ORES app surface parity receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "policy_reference",
+    "pair",
+    "implementation",
+    "local_repository",
+    "peer_repository",
+    "feature_count",
+    "feature_ids",
+    "contract_digest",
+    "portable_core_violations",
+    "status"
+  ],
+  "properties": {
+    "schema": { "const": "ores.app-surface-parity/v1" },
+    "policy_reference": { "type": "string", "format": "uri" },
+    "pair": { "type": "string", "minLength": 1 },
+    "implementation": { "enum": ["flutter", "rust"] },
+    "local_repository": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+    "peer_repository": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+    "feature_count": { "type": "integer", "minimum": 1 },
+    "feature_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "contract_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "portable_core_violations": { "const": 0 },
+    "status": { "const": "pass" }
+  }
+}
