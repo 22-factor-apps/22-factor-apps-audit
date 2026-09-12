@@ -2,3 +2,9 @@
 *.tmp
 audit-report.json
 assessment.json
+
+# Repository-local temporary data and authorized Git worktrees
+tmp
+temp
+tmp/worktrees
+temp/worktrees
