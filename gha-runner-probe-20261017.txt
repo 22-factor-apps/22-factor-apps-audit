@@ -1,0 +1,2 @@
+GitHub-hosted runner allocation probe for 2026-10-17.
+No Oreslang or private source is included.
